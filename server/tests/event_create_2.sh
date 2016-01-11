@@ -36,7 +36,7 @@ EOF
 curl -i \
      -F event="$JSON" \
      -F ${PART_PREFIX}1=$ATTACHMENT_1 \
-     -F ${PART_PREFIX}2=$ATTACHMENT_1 \
+     -F ${PART_PREFIX}2=$ATTACHMENT_2 \
      http://localhost:8080/CrowsSourcing/event/create
 
 
