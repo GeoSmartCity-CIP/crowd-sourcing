@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Collection;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -30,8 +31,6 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
         super();
     }
 
-    public static final String QUERY_GET_TAGS = "SELECT value FROM tag";
-
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
@@ -41,35 +40,16 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 		Exception exception = null;
 		Connection connection = null;
 		Statement statement = null;
-		ResultSet result = null;
 		
 		try {
-			JSONObject config = new JSONObject();
-			
-			JSONArray tags = new JSONArray();
-			
 			connection = openDatabaseConnection();
-			statement = connection.createStatement();
-			result = statement.executeQuery(QUERY_GET_TAGS);
-			while (result.next()) {
-				tags.add(result.getString(1));
-			}
-			
-			if (tags.size() > 0)
-				config.put(CONFIG_TAGS, tags);
 
-			JSONArray mediaTypes = new JSONArray();
-			mediaTypes.add("image/jpeg");
-			mediaTypes.add("image/png");
-			config.put(CONFIG_MIME_TYPES, mediaTypes);		
+			JSONObject config = new JSONObject();
+			addToConfig(config, CONFIG_TAGS, getAvailableTags(connection));
+			addToConfig(config, CONFIG_MIME_TYPES, getSupportedMimeTypes(connection));
+			addToConfig(config, CONFIG_STATUSES, getAvailableStatuses(connection));
+			addToConfig(config, CONFIG_PRIORITIES, getAvailablePriorities(connection));
 
-			JSONArray statuses = new JSONArray();
-			statuses.add("new");
-			statuses.add("assigned");
-			statuses.add("approved");
-			statuses.add("closed");
-			config.put(CONFIG_STATUSES, statuses);		
-			
 			PrintWriter writer = response.getWriter();
 			config.writeJSONString(writer);
 		}
@@ -77,7 +57,6 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 			exception = e;
 		}
 		finally {
-			closeQuietly(result);
 			closeQuietly(statement);
 			closeQuietly(connection);
 		}
@@ -86,6 +65,12 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 			response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
 			exception.printStackTrace(response.getWriter());
 		}
+	}
+
+	private void addToConfig(JSONObject config, String key, Collection<String> values) {
+			JSONArray array = new JSONArray();
+			array.addAll(values);
+			config.put(key, array);
 	}
 
 	/**

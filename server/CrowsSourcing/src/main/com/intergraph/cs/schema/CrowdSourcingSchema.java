@@ -40,4 +40,5 @@ public interface CrowdSourcingSchema {
 	String CONFIG_TAGS = "tags";
 	String CONFIG_MIME_TYPES = "mime_types";
 	String CONFIG_STATUSES = "statuses";
+	String CONFIG_PRIORITIES = "priorities";
 }

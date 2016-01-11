@@ -99,17 +99,6 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			double latitude = getDoubleOrThrow(location, LOCATION_LATITUDE);
 			int srid = getSRID(getString(location, LOCATION_CRS));
 			
-//
-//			statement = connection.prepareStatement(INSERT_LOCATION);
-//			statement.setDouble(1, longitude);
-//			statement.setDouble(2, latitude);
-//			statement.setString(3, crs);
-//			result = statement.executeQuery();
-//			result.next();
-//			int locationId = result.getInt(1);
-//			result.close();
-//			statement.close();
-			
 			statement = connection.prepareStatement(SELECT_USER);
 			statement.setString(1, userId);
 			result = statement.executeQuery();
