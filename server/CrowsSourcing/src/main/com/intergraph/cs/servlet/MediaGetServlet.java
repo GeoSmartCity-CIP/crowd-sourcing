@@ -24,7 +24,7 @@ public class MediaGetServlet extends CrowdSourcingServlet {
 	private static final long serialVersionUID = 8290610281380922366L;
 	
 	
-	public static final String GET_DATA = "SELECT data, mime_type FROM media WHERE id=?";
+	public static final String GET_DATA = "SELECT data, mime_type FROM media WHERE uuid=?";
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {

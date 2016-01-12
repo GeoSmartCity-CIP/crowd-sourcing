@@ -2,6 +2,7 @@ package com.intergraph.cs.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -151,6 +152,9 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 
 				String uri = getString(object, EVENT_MEDIA_URI);
 				Part part = getPartByName(parts, uri);
+				if (part == null)
+					throw new CrowdSourcingException("Cannot find part '" + uri + "'");
+
 				storeMedia(part, eventId, mimeType, connection);
 			}
 
