@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ATTACHMENT_1="@checkmark-512.png"
+ATTACHMENT_1="@checkmark-512.xxx"
 PART_PREFIX="part://"
 
 read -d '' JSON << EOF

@@ -1,17 +1,8 @@
 #!/bin/bash
 
 BASE_URL="http://localhost:8080/CrowdSourcing"
-SERVICE_PATH="event/list"
-
-read -d '' JSON << EOF
-{
-}
-EOF
-
-#echo "$JSON"
-#exit 0
+SERVICE_PATH="config"
 
 curl -i \
-     -d "$JSON" \
      $BASE_URL/$SERVICE_PATH
 
