@@ -1,0 +1,308 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "allOf": [ { "$ref": "http://json-schema.org/draft-04/hyper-schema" } ],
+  "id": "http://geosmartity.eu/schema/json/crowd#",
+  "type": "object",
+  "properties": {
+    "event": {
+      "$ref": "#/definitions/event"
+    },
+    "media": {
+      "$ref": "#/definitions/media"
+    },
+    "config": {
+      "$ref": "#/definitions/config"
+    }
+
+  },
+  "definitions": {
+    "event": {
+      "definitions": {
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "user": {
+          "properties": {
+            "id": { "type": "string" },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "role": { "type": "string" },
+            "organization": { "type": "string" }
+          },
+          "required": [ "id" ]
+        },
+        "location": {
+          "properties": {
+            "lat": { "type": "number" },
+            "lon": { "type": "number" },
+            "crs": { "type": "string" },
+            "geocoded": { "type": "string" },
+            "foi_id": { "type": "string" }
+          },
+          "required": [ "lat", "lon", "crs" ]
+        },
+        "priority": {
+          "type": "string"
+        },
+        "datetime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "enum": [ "opened", "assigned", "dismissed", "closed", "approved" ]
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "properties": {
+              "user": { "$ref": "#/definitions/event/definitions/user" },
+              "text": { "type": "string" },
+              "datetime": { "$ref": "#/definitions/event/definitions/datetime" }
+            }
+          }
+        }
+      },
+      "links": [
+        {
+          "title": "Create",
+          "description": "Create a new event.",
+          "href": "/events/create",
+          "method": "POST",
+          "rel": "create",
+          "schema": {
+            "$ref": "#/definitions/event"
+          }
+        },
+        {
+          "title": "List",
+          "description": "List events",
+          "href": "/events/list",
+          "method": "POST",
+          "rel": "instances",
+          "schema": {
+            "properties": {
+              "tags": {
+                "$ref": "#/definitions/event/definitions/tags"
+              },
+              "priority": {
+                "type": "array",
+                "items": { "$ref": "#/definitions/event/definitions/priority" }
+              },
+              "user": { "type": "string" },
+              "datetime": {
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "to": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              },
+              "bbox": {
+                "lowerCorner": { "type": "number" },
+                "upperCorner": { "type": "number" },
+                "crs": { "type": "string" }
+              }
+            }
+          },
+          "targetSchema": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/event" }
+          }
+
+        },
+        {
+          "title": "Comment",
+          "description": "Add a comment to an event",
+          "href": "/events/{(%23%2Fdefinitions%2Fevent%2Fdefinitions%2Fid)}/comment",
+          "method": "POST",
+          "rel": "update",
+          "schema": {
+            "properties": {
+              "user": { "$ref": "#/definitions/event/definitions/user" },
+              "text": { "type": "string" },
+              "datetime": { "$ref": "#/definitions/event/definitions/datetime" }
+            },
+            "required": [ "user", "text", "datetime" ]
+          }
+
+        },
+        {
+          "title": "Approve",
+          "description": "Approve the action derived from the event",
+          "href": "/events/{(%23%2Fdefinitions%2Fevent%2Fdefinitions%2Fid)}/approve",
+          "method": "POST",
+          "rel": "update",
+          "schema": {
+            "properties": {
+              "user": { "$ref": "#/definitions/event/definitions/user" },
+              "text": { "type": "string" },
+              "datetime": { "$ref": "#/definitions/event/definitions/datetime" }
+            },
+            "required": [ "user", "text", "datetime" ]
+          }
+        },
+        {
+          "title": "Dismiss",
+          "description": "Dismiss the event derived request or task",
+          "href": "/events/{(%23%2Fdefinitions%2Fevent%2Fdefinitions%2Fid)}/dismiss",
+          "method": "POST",
+          "rel": "update",
+          "schema": {
+            "properties": {
+              "user": { "$ref": "#/definitions/event/definitions/user" },
+              "text": { "type": "string" },
+              "datetime": { "$ref": "#/definitions/event/definitions/datetime" }
+            },
+            "required": [ "user", "text", "datetime" ]
+          }
+        },
+        {
+          "title": "Assign",
+          "description": "Dismiss the event derived request or task",
+          "href": "/events/{(%23%2Fdefinitions%2Fevent%2Fdefinitions%2Fid)}/assign",
+          "method": "POST",
+          "rel": "update",
+          "schema": {
+            "properties": {
+              "user": { "$ref": "#/definitions/event/definitions/user" },
+              "assignee": { "$ref": "#/definitions/event/definitions/user" },
+              "datetime": { "$ref": "#/definitions/event/definitions/datetime" }
+            },
+            "required": [ "user", "text", "datetime" ]
+          }
+        },
+        {
+          "title": "Close",
+          "description": "Close the event",
+          "href": "/events/{(%23%2Fdefinitions%2Fevent%2Fdefinitions%2Fid)}/close",
+          "method": "POST",
+          "rel": "update",
+          "schema": {
+            "properties": {
+              "user": { "$ref": "#/definitions/event/definitions/user" },
+              "text": { "type": "string" },
+              "datetime": { "$ref": "#/definitions/event/definitions/datetime" }
+            },
+            "required": [ "user", "text", "datetime" ]
+          }
+        }
+
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/event/definitions/id" },
+        "description": { "$ref": "#/definitions/event/definitions/description" },
+        "status": { "$ref": "#/definitions/event/definitions/status" },
+        "assignee": { "$ref": "#/definitions/event/definitions/user" },
+        "tags": { "$ref": "#/definitions/event/definitions/tags" },
+        "media": { "$ref": "#/definitions/event/definitions/media" },
+        "location": { "$ref": "#/definitions/event/definitions/location" },
+        "priority": { "$ref": "#/definitions/event/definitions/priority" },
+        "user": { "$ref": "#/definitions/event/definitions/user" },
+        "datetime": { "$ref": "#/definitions/event/definitions/datetime" },
+        "comments": { "$ref": "#/definitions/event/definitions/comments" }
+
+      },
+      "required": [ "id", "type", "description", "tags", "location", "user", "datetime" ]
+
+    },
+    "media": {
+      "definitions": {
+        "id": {
+          "type": "string",
+          "format": "uri"
+        },
+        "mime_type": { "type": "string" },
+        "encoding": { "type": "string" },
+        "extension": { "type": "string" },
+        "data": { "type": "string" }
+      },
+      "links": [
+        {
+          "title": "Upload",
+          "description": "Upload a media file.",
+          "href": "/media/upload",
+          "method": "POST",
+          "rel": "create",
+          "schema": {
+            "allOf": [
+              { "$ref": "#/definitions/media" },
+              { "not": { "required": [ "id" ] } }
+            ]
+          },
+          "targetSchema": {
+            "properties": {
+              "id": { "$ref": "#/definitions/media/definitions/id" }
+            }
+          }
+        },
+        {
+          "title": "Get file",
+          "description": "Retrieve a media file",
+          "href": "/media/{(%23%2Fdefinitions%2Fmedia%2Fdefinitions%2Fid)}",
+          "method": "GET",
+          "rel": "self",
+          "targetSchema": {
+            "$ref": "#/definitions/media"
+          }
+
+        }
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/media/definitions/id" },
+        "mime_type": { "$ref": "#/definitions/media/definitions/mime_type" },
+        "encoding": { "$ref": "#/definitions/media/definitions/encoding" },
+        "extension": { "$ref": "#/definitions/media/definitions/extension" },
+        "data": { "$ref": "#/definitions/media/definitions/data" }
+      }
+    },
+    "config": {
+      "links": [
+        {
+          "title": "Get config",
+          "description": "Retrieve configuration with available parameters",
+          "href": "/config",
+          "method": "GET",
+          "rel": "self",
+          "targetSchema": {
+            "$ref": "#/definitions/config"
+          }
+
+        }
+      ],
+      "properties": {
+        "tags": { "$ref": "#/definitions/event/definitions/tags"},
+        "mime_types": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/media/definitions/mime_type"}
+        },
+        "statuses": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/event/definitions/status"}
+        }
+
+      }
+    }
+  }
+
+}
