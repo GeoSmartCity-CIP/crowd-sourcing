@@ -83,6 +83,10 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 			dbPassword = value;
 	}
 
+	protected void initializeHeaders(HttpServletResponse response) {
+		response.addHeader("Access-Control-Allow-Origin", "*");
+	}		
+
 	protected Connection openDatabaseConnection() throws SQLException {
 		try {
 			Class.forName(dbDriver);

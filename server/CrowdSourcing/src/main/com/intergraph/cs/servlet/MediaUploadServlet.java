@@ -54,6 +54,9 @@ public class MediaUploadServlet extends CrowdSourcingServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
+		
+		initializerHelper(response);
+
 		Collection<Part> parts = request.getParts();
 		Iterator<Part> iterator = parts.iterator();
 		while (iterator.hasNext()) {

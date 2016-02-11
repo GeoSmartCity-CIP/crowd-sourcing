@@ -29,6 +29,8 @@ public class MediaGetServlet extends CrowdSourcingServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
 		
+		initializerHelper(response);
+		
 		URI uri = URI.create(request.getRequestURI());
 		String id = request.getPathInfo();
 		if (id != null && id.startsWith("/")) {

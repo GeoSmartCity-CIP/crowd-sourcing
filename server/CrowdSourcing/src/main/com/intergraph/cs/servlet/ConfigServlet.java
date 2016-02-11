@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.intergraph.cs.schema.CrowdSourcingSchema;
+import com.sun.org.omg.CORBA.InitializerHelper;
 
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -36,6 +37,8 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
+		
+		initializerHelper(response);
 		
 		Exception exception = null;
 		Connection connection = null;

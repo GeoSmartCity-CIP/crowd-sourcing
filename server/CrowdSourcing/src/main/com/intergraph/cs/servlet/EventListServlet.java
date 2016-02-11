@@ -56,6 +56,8 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
 		
+		initializerHelper(response);
+		
 		requestURL = request.getRequestURL().toString();
 		servletPath = request.getServletPath();
 		
