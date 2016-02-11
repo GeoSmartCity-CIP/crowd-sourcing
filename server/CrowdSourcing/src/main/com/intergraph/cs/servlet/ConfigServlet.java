@@ -38,7 +38,7 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
 		
-		initializerHelper(response);
+		initializeHeaders(response);
 		
 		Exception exception = null;
 		Connection connection = null;

@@ -46,7 +46,7 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
 
-		initializerHelper(response);
+		initializeHeaders(response);
 		
 		Exception exception = null;
 		InputStream jsonInput = null;
