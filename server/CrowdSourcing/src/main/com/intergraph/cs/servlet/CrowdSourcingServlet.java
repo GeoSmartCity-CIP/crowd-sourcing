@@ -86,6 +86,7 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 
 	protected void initializeHeaders(HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
+		response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 	}		
 
 	protected Connection openDatabaseConnection() throws SQLException {
