@@ -19,13 +19,13 @@ import net.minidev.json.parser.JSONParser;
  * Servlet implementation class EventComment
  */
 @WebServlet("/event/assign/*")
-public class EventAssign extends CrowdSourcingServlet {
+public class EventAssignServlet extends CrowdSourcingServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see CrowdSourcingServlet#CrowdSourcingServlet()
      */
-    public EventAssign() {
+    public EventAssignServlet() {
         super();
     }
 

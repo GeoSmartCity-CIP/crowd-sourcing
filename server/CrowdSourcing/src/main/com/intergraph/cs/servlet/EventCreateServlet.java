@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
@@ -73,25 +74,40 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			JSONParser parser = createJSONParser();
 			JSONObject data = (JSONObject)parser.parse(jsonInput);
 
-			String id = getStringOrThrow(data, EVENT_ID);
-			UUID eventUuid = UUID.fromString(id);
+			String id = getString(data, EVENT_ID);
+			UUID eventUuid;
+			if (isEmptyString(id))
+				eventUuid = UUID.randomUUID();
+			else
+				eventUuid = UUID.fromString(id);
+
 			String eventDescription = getString(data, EVENT_DESCRIPTION);
 			JSONArray media = getJSONArray(data, EVENT_MEDIA);
+
 			String eventPriority = getString(data, EVENT_PRIORITY);
+			if (isEmptyString(eventPriority))
+				eventPriority = getPriorityDefault(connection);
+				
 			String eventDatetime = getString(data, EVENT_DATETIME);
-			String eventStatus = getString(data, EVENT_STATUS);
+			Timestamp eventTimestamp;
+			if (isEmptyString(eventDatetime)) 
+				eventTimestamp = new Timestamp(System.currentTimeMillis());
+			else
+			    eventTimestamp = parseISO8601(eventDatetime);
+
+			String eventStatus = getStatusDefault(connection);
 			checkStatus(connection, eventStatus);
 			JSONArray eventTags = getJSONArray(data, EVENT_TAGS);
 			checkTags(connection, eventTags);
 			
-			String userId = null, userEmail = null, userRole = null, userOrganization = null;
+			String userId = null, userPassword = null;
 			JSONObject user = getJSONObject(data, EVENT_USER);
 			if (user != null) {
 				userId = getString(user, USER_ID);
-				userEmail = getString(user, USER_EMAIL);
-				userRole = getString(user, USER_ROLE);
-				userOrganization = getString(user, USER_ORGANIZATION);
+				userPassword = getString(user, USER_PASSWORD);
 			}
+			
+			verifyUser(connection, userId, userPassword);
 			
 			JSONObject location = (JSONObject)data.get(EVENT_LOCATION);
 			if (location == null) {
@@ -102,23 +118,6 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			double latitude = getDoubleOrThrow(location, LOCATION_LATITUDE);
 			int srid = getSRID(getString(location, LOCATION_CRS));
 			
-			statement = connection.prepareStatement(SELECT_USER);
-			statement.setString(1, userId);
-			result = statement.executeQuery();
-			boolean userExists = result.next();
-			result.close();
-			statement.close();
-
-			if (!userExists) {
-				statement = connection.prepareStatement(INSERT_USER);
-				statement.setString(1, userId);
-				statement.setString(2, userEmail);
-				statement.setString(3, userRole);
-				statement.setString(4, userOrganization);
-				statement.execute();
-				statement.close();
-			}
-					
 			Array tagsArray = null;
 			if (eventTags != null && !eventTags.isEmpty()) {
 				int ntags = eventTags.size();
@@ -137,7 +136,7 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			statement.setDouble(5, longitude);
 			statement.setInt(6, srid);
 			statement.setString(7, eventPriority);
-			statement.setTimestamp(8, parseISO8601(eventDatetime));
+			statement.setTimestamp(8, eventTimestamp);
 			statement.setString(9, eventStatus);
 			statement.setArray(10, tagsArray);
 			result = statement.executeQuery();

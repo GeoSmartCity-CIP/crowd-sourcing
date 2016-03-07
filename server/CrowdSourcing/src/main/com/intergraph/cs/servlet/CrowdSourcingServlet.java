@@ -3,6 +3,9 @@ package com.intergraph.cs.servlet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -43,6 +46,10 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	public static final String PARAM_DATABASE_USER = "db-user";
 	public static final String PARAM_DATABASE_PASSWORD = "db-password";
 
+	public static final String PARAM_STATUS_DEFAULT = PROPERTY_STATUS_DEFAULT;
+	public static final String PARAM_ROLE_DEFAULT = PROPERTY_ROLE_DEFAULT;
+	public static final String PARAM_PRIORITY_DEFAULT = PROPERTY_PRIORITY_DEFAULT;
+
 	public static final String DATABASE_DRIVER = "org.postgresql.Driver";
 	public static final String DATABASE_URL = "jdbc:postgresql://localhost:5432/cs";
 	public static final String DATABASE_USER = "rszturc";
@@ -57,6 +64,10 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	protected String dbUrl = DATABASE_URL;
 	protected String dbUser = DATABASE_USER;
 	protected String dbPassword = DATABASE_PASSWORD;
+
+	protected String statusDefault;
+	protected String roleDefault;
+	protected String priorityDefault;
 
 	public CrowdSourcingServlet() {
 		super();
@@ -82,6 +93,10 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 		value = context.getInitParameter(PARAM_DATABASE_PASSWORD);
 		if (value != null)
 			dbPassword = value;
+
+		statusDefault = context.getInitParameter(PARAM_STATUS_DEFAULT);
+		roleDefault = context.getInitParameter(PARAM_ROLE_DEFAULT);
+		priorityDefault = context.getInitParameter(PARAM_PRIORITY_DEFAULT);
 	}
 
 	protected void initializeHeaders(HttpServletResponse response) {
@@ -254,7 +269,10 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 		return UUID.fromString(id);
 	}
 
-	public static final String QUERY_SELECT_USER = "SELECT count(*) FROM \"user\" WHERE id=?";
+	public static final String QUERY_SELECT_PROPERTY = "SELECT value FROM property WHERE key=?";
+
+	public static final String QUERY_SELECT_USER = "SELECT * FROM \"user\" WHERE id=?";
+	public static final String QUERY_SELECT_USER_COUNT = "SELECT count(*) FROM \"user\" WHERE id=?";
 	public static final String QUERY_INSERT_USER = "INSERT INTO \"user\" (id, email, role, organization) VALUES (?, ?, ?, ?)";
 
 	protected String getUserId(Connection connection, JSONObject object)
@@ -269,7 +287,7 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 		PreparedStatement statement = null;
 		ResultSet result = null;
 		try {
-			statement = connection.prepareStatement(QUERY_SELECT_USER);
+			statement = connection.prepareStatement(QUERY_SELECT_USER_COUNT);
 			statement.setString(1, id);
 			result = statement.executeQuery();
 			result.next();
@@ -384,4 +402,127 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 					priority + "'");
 	}
 
+	protected void checkUser(Connection connection, String userId, String password) 
+			throws CrowdSourcingException, SQLException {
+		if (userId == null)
+			throw new CrowdSourcingException("Missing user identification");
+		
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		try {
+			statement = connection.prepareStatement(QUERY_SELECT_USER);
+			statement.setString(1, userId);
+			result = statement.executeQuery();
+			if (!result.next()) {
+				if (password == null)
+					// This is check of user existence
+					return;
+				
+				if (password != null) 
+					throw new CrowdSourcingException("Unknown user '" + userId + "'");
+			}
+
+			if (password == null)
+				throw new CrowdSourcingException("User '" + userId + "' already exists");
+			
+			String dbHash = result.getString(result.findColumn(USER_PASSWORD));
+			String hash = passwordAsHexString(password);
+			if (!hash.equals(dbHash))
+				throw new CrowdSourcingException("Invalid user name or password");
+
+		} finally {
+			closeQuietly(result);
+			closeQuietly(statement);
+		}
+	}
+	
+	protected void verifyUser(Connection connection, String user, String password) 
+			throws CrowdSourcingException, SQLException {
+
+		if (!isLoginRequired(connection))
+			return;
+		
+		checkUser(connection, user, password);
+	}
+
+	/**
+	 * Converts user password to SHA-256 hex string.
+	 * 
+	 * @param password The password.
+	 * @return SHA-256 as a hex string.
+	 */
+	protected String passwordAsHexString(String password) {
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
+		byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+		
+		StringBuilder hexString = new StringBuilder();
+		for (int i = 0; i < hash.length; i++) {
+            String hex = Integer.toHexString(0xff & hash[i]);
+            if(hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
+	}
+
+	protected String getProperty(Connection connection, String key) throws SQLException {
+		return getProperty(connection, key, null);
+	}
+
+	protected String getProperty(Connection connection, String key, String defValue) throws SQLException {
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		try {
+			statement = connection.prepareStatement(QUERY_SELECT_PROPERTY);
+			statement.setString(1, key);
+			result = statement.executeQuery();
+			return result.next() ? result.getString(1) : defValue;
+		} finally {
+			closeQuietly(result);
+			closeQuietly(statement);
+		}
+	}
+
+	protected static boolean loginRequired;
+	protected static boolean loginRequiredInitialized;
+
+	/**
+	 * Check whether user login is required.
+	 * 
+	 * @param connection Existing database connection.
+	 * @return True if login is required, false otherwise.
+	 * 
+	 * @throws SQLException If something goes wrong...
+	 */
+	protected boolean isLoginRequired(Connection connection) throws SQLException {
+		if (!loginRequiredInitialized) {
+			String required = getProperty(connection, PROPERTY_LOGIN_REQUIRED);
+			loginRequired = Boolean.parseBoolean(required);
+			loginRequiredInitialized = true;
+		}
+
+		return loginRequired;
+	}
+	
+	protected String getStatusDefault(Connection connection) throws SQLException {
+		return getProperty(connection, PROPERTY_STATUS_DEFAULT, statusDefault);
+	}
+
+	protected String getRoleDefault(Connection connection) throws SQLException {
+		return getProperty(connection, PROPERTY_ROLE_DEFAULT, roleDefault);
+	}
+
+	protected String getPriorityDefault(Connection connection) throws SQLException {
+		return getProperty(connection, PROPERTY_PRIORITY_DEFAULT, priorityDefault);
+	}
+	
+	static protected boolean isEmptyString(String string) {
+		return string == null || string.trim().isEmpty();
+	}
 }

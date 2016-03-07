@@ -20,6 +20,7 @@ public interface CrowdSourcingSchema {
 	String USER_EMAIL = "email";
 	String USER_ROLE = "role";
 	String USER_ORGANIZATION = "organization";
+	String USER_PASSWORD = "password";
 	
 	String LOCATION_LATITUDE = "lat";
 	String LOCATION_LONGITUDE = "lon";
@@ -41,4 +42,9 @@ public interface CrowdSourcingSchema {
 	String CONFIG_MIME_TYPES = "mime_types";
 	String CONFIG_STATUSES = "statuses";
 	String CONFIG_PRIORITIES = "priorities";
+
+	String PROPERTY_LOGIN_REQUIRED = "login-required";
+	String PROPERTY_STATUS_DEFAULT = "status-default";
+	String PROPERTY_ROLE_DEFAULT = "role-default";
+	String PROPERTY_PRIORITY_DEFAULT = "priority-default";
 }

@@ -9,24 +9,26 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
-  
-  <!-- <context-param>
-    <param-name>db-driver</param-name>
-    <param-value>org.postgresql.Driver</param-value>
-  </context-param> -->
-
   <context-param>
     <param-name>db-url</param-name>
     <param-value>jdbc:postgresql://localhost:5432/cs</param-value>
   </context-param>
-
   <context-param>
     <param-name>db-user</param-name>
     <param-value>rszturc</param-value>
   </context-param>
-
   <context-param>
     <param-name>db-password</param-name>
     <param-value>rszturc</param-value>
+  </context-param>
+
+  <!-- 
+     First, the default status is searched in table property under key 'status-default'.
+     If not found value of this parameter is used. If not used, status value remains 
+     uninitialized.
+   -->
+  <context-param>
+    <param-name>status-default</param-name>
+    <param-value>submitted</param-value>
   </context-param>
 </web-app>
