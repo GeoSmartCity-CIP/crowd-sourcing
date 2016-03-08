@@ -30,6 +30,7 @@ public interface CrowdSourcingSchema {
 	String COMMENT_TEXT = "text";
 	String COMMENT_DATETIME = "datetime";
 	
+	String LIST_FILTER = "filter";
 	String LIST_FROM = "from";
 	String LIST_TO = "to";
 	String LIST_BBOX = "bbox";

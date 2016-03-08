@@ -87,11 +87,13 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 	public static final String LIST_CONDITION_FROM = " datetime >= ?";
 	public static final String LIST_CONDITION_TO = " datetime <= ?";
 	public static final String LIST_CONDITION_PRIORITY = " priority = ?";
+	public static final String LIST_CONDITION_STATUS = " status = ?";
+	public static final String LIST_CONDITION_USER_ID = " \"user\" = ?";
 	public static final String LIST_CONDITION_BBOX = " location @ ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), ?)";
 
 	public static final String LIST_MEDIA = "SELECT uuid, mime_type FROM media WHERE event_id=?";
 	
-	protected void listEvents(JSONObject filter, HttpServletResponse response) 
+	protected void listEvents(JSONObject data, HttpServletResponse response) 
 			throws ServletException, IOException {
 		
 		Exception exception = null;
@@ -103,6 +105,7 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 		try {
 			connection = openDatabaseConnection();
 			
+			JSONObject filter = getJSONObject(data, LIST_FILTER);
 			String query = LIST_QUERY;
 			
 			ArrayList<String> conditions = new ArrayList<String>();
@@ -155,6 +158,12 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 				condition.append(")");
 				
 				conditions.add(condition.toString());
+			}
+
+			String user = getString(filter, EVENT_USER);
+			if (user != null) {
+				conditions.add(LIST_CONDITION_USER_ID);
+				params.add(user);
 			}
 
 			int nconditions = conditions.size();

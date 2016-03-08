@@ -6,8 +6,11 @@ SERVICE_PATH="event/list"
 
 read -d '' JSON << EOF
 {
-   "priority": [
-   ]
+   "filter": {
+      "priority": [
+         "high", "urgent"
+      ]
+   }
 }
 EOF
 
