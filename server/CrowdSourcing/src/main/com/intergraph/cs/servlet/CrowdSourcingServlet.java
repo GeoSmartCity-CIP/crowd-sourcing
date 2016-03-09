@@ -31,6 +31,7 @@ import javax.servlet.http.Part;
 import com.intergraph.cs.io.IOUtils;
 import com.intergraph.cs.schema.CrowdSourcingSchema;
 
+import model.User;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -119,6 +120,7 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	}
 
 	public static final String INSERT_DATA = "INSERT INTO media (event_id, mime_type, data, uuid) VALUES (?, ?, ?, ?)";
+	public static final String SELECT_USER = "SELECT id, password, email, organization, role FROM \"user\" WHERE id=?";
 
 	protected void storeMedia(Part part, long eventId, String mediaType, Connection connection)
 			throws SQLException, IOException {
@@ -275,45 +277,45 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	public static final String QUERY_SELECT_USER_COUNT = "SELECT count(*) FROM \"user\" WHERE id=?";
 	public static final String QUERY_INSERT_USER = "INSERT INTO \"user\" (id, email, role, organization) VALUES (?, ?, ?, ?)";
 
-	protected String getUserId(Connection connection, JSONObject object)
-			throws MissingArgumentException, SQLException, UserAlreadyExists {
-
-		JSONObject user = getJSONObjectOrThrow(object, EVENT_USER);
-		String id = getString(user, USER_ID);
-		String email = getString(user, USER_EMAIL);
-		String role = getString(user, USER_ROLE);
-		String organization = getString(user, USER_ORGANIZATION);
-
-		PreparedStatement statement = null;
-		ResultSet result = null;
-		try {
-			statement = connection.prepareStatement(QUERY_SELECT_USER_COUNT);
-			statement.setString(1, id);
-			result = statement.executeQuery();
-			result.next();
-			int count = result.getInt(1);
-
-			if (count > 0) {
-				if (email != null || role != null || organization != null)
-					throw new UserAlreadyExists("User '" + id + "' already exists");
-
-				return id;
-			}
-
-			closeQuietly(statement);
-			statement = connection.prepareStatement(QUERY_INSERT_USER);
-			statement.setString(1, id);
-			statement.setString(2, email);
-			statement.setString(3, role);
-			statement.setString(4, organization);
-			statement.executeUpdate();
-
-			return id;
-		} finally {
-			closeQuietly(result);
-			closeQuietly(statement);
-		}
-	}
+//	protected String getUserId(Connection connection, JSONObject object)
+//			throws MissingArgumentException, SQLException, UserAlreadyExists {
+//
+//		JSONObject user = getJSONObjectOrThrow(object, EVENT_USER);
+//		String id = getString(user, USER_ID);
+//		String email = getString(user, USER_EMAIL);
+//		String role = getString(user, USER_ROLE);
+//		String organization = getString(user, USER_ORGANIZATION);
+//
+//		PreparedStatement statement = null;
+//		ResultSet result = null;
+//		try {
+//			statement = connection.prepareStatement(QUERY_SELECT_USER_COUNT);
+//			statement.setString(1, id);
+//			result = statement.executeQuery();
+//			result.next();
+//			int count = result.getInt(1);
+//
+//			if (count > 0) {
+//				if (email != null || role != null || organization != null)
+//					throw new UserAlreadyExists("User '" + id + "' already exists");
+//
+//				return id;
+//			}
+//
+//			closeQuietly(statement);
+//			statement = connection.prepareStatement(QUERY_INSERT_USER);
+//			statement.setString(1, id);
+//			statement.setString(2, email);
+//			statement.setString(3, role);
+//			statement.setString(4, organization);
+//			statement.executeUpdate();
+//
+//			return id;
+//		} finally {
+//			closeQuietly(result);
+//			closeQuietly(statement);
+//		}
+//	}
 
 	public static final String QUERY_SELECT_TAGS = "SELECT tag FROM tag";
 	public static final String QUERY_SELECT_MIME_TYPES = "SELECT mime_type FROM mime_type";
@@ -402,7 +404,50 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 					priority + "'");
 	}
 
-	protected void checkUser(Connection connection, String userId, String password) 
+	protected User getUser(Connection connection, JSONObject data) 
+			throws CrowdSourcingException, SQLException {
+		
+		// Initialize login-required status
+		initializeLoginRequired(connection);
+		
+		if (data == null)
+			return null;
+		
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		try {
+			JSONObject user = getJSONObject(data, EVENT_USER);
+			if (user == null)
+				return null;
+			
+			String id = getString(user, USER_ID);
+			if (id == null)
+				return null;
+
+			statement = connection.prepareStatement(SELECT_USER);
+			statement.setString(1, id);
+			result = statement.executeQuery();
+			if (!result.next()) 
+				return null;
+			
+			int i = 2;
+			User u = new User();
+			u.id = id;
+			u.password = result.getString(i++);
+			u.email = result.getString(i++);
+			u.organization = result.getString(i++);
+			u.roles = new String[] {result.getString(i++)};
+			
+			return u;
+		} 
+		finally {
+			closeQuietly(result);
+			closeQuietly(statement);
+		}
+		
+	}
+
+	protected void checkUserIdAvailability(Connection connection, String userId) 
 			throws CrowdSourcingException, SQLException {
 		if (userId == null)
 			throw new CrowdSourcingException("Missing user identification");
@@ -413,36 +458,98 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 			statement = connection.prepareStatement(QUERY_SELECT_USER);
 			statement.setString(1, userId);
 			result = statement.executeQuery();
-			if (!result.next()) {
-				if (password == null)
-					// This is check of user existence
-					return;
-				
-				if (password != null) 
-					throw new CrowdSourcingException("Unknown user '" + userId + "'");
-			}
-
-			if (password == null)
+			if (result.next()) 
 				throw new CrowdSourcingException("User '" + userId + "' already exists");
-			
-			String dbHash = result.getString(result.findColumn(USER_PASSWORD));
-			String hash = passwordAsHexString(password);
-			if (!hash.equals(dbHash))
-				throw new CrowdSourcingException("Invalid user name or password");
 
-		} finally {
+		} 
+		finally {
 			closeQuietly(result);
 			closeQuietly(statement);
 		}
 	}
 	
-	protected void verifyUser(Connection connection, String user, String password) 
+//	protected void verifyUser_Old(Connection connection, JSONObject data) 
+//			throws CrowdSourcingException, SQLException {
+//
+//		String id = null, password = null;
+//		JSONObject user = getJSONObject(data, EVENT_USER);
+//		if (user != null) {
+//			id = getString(user, USER_ID);
+//			password = getString(user, USER_PASSWORD);
+//		}
+//		
+//		verifyUser(connection, id, password);
+//	}
+
+//	protected void verifyUser(Connection connection, String user, String password) 
+//			throws CrowdSourcingException, SQLException {
+//
+//		if (!isLoginRequired())
+//			return;
+//		
+//		checkUser(connection, user, password);
+//	}
+
+//	protected void verifyRole(Connection connection, JSONObject data)
+//			throws CrowdSourcingException, SQLException {
+//
+//		String id = null, password = null;
+//		JSONObject user = getJSONObject(data, EVENT_USER);
+//		if (user != null) {
+//			id = getString(user, USER_ID);
+//			password = getString(user, USER_PASSWORD);
+//		}
+//		
+//		checkUser(connection, id, password);
+//		
+//	}
+
+	protected User verifyUser(Connection connection, JSONObject object) 
 			throws CrowdSourcingException, SQLException {
 
-		if (!isLoginRequired(connection))
+		User user = getUser(connection, object);
+		verifyUser(user, object);
+		
+		return user;
+	}
+
+
+	protected void verifyUser(User user, JSONObject object) 
+			throws PermissionException, MissingArgumentException {
+		JSONObject u = getJSONObject(object, EVENT_USER);
+		String userId = getString(u, USER_ID);
+		String password = getString(u, USER_PASSWORD);
+
+		verifyUser(user, userId, password);
+	}
+
+	protected void verifyUser(User user, String userId, String password) 
+			throws PermissionException {
+		if (!isLoginRequired())
 			return;
 		
-		checkUser(connection, user, password);
+		if (user == null)
+			throw new PermissionException("Invalid username or password");
+
+		if (isEmptyString(userId) || isEmptyString(password))
+			throw new PermissionException("Invalid username or password");
+		
+		if (!userId.equals(user.id))
+			throw new PermissionException("Invalid username or password");
+		
+		if (!user.password.equals(passwordAsHexString(password)))
+			throw new PermissionException("Invalid username or password");
+	}
+
+	protected void verifyRole(User user, String role) throws PermissionException {
+		if (user == null)
+			throw new PermissionException("Login required");
+
+		for (String r : user.roles) 
+			if (role.equalsIgnoreCase(r))
+				return;
+		
+		throw new PermissionException("Role '" + role + "' required to perform this action");
 	}
 
 	/**
@@ -492,22 +599,16 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	protected static boolean loginRequired;
 	protected static boolean loginRequiredInitialized;
 
-	/**
-	 * Check whether user login is required.
-	 * 
-	 * @param connection Existing database connection.
-	 * @return True if login is required, false otherwise.
-	 * 
-	 * @throws SQLException If something goes wrong...
-	 */
-	protected boolean isLoginRequired(Connection connection) throws SQLException {
+	protected boolean isLoginRequired() {
+		return loginRequiredInitialized ? loginRequired : false;
+	}
+
+	protected void initializeLoginRequired(Connection connection) throws SQLException {
 		if (!loginRequiredInitialized) {
 			String required = getProperty(connection, PROPERTY_LOGIN_REQUIRED);
 			loginRequired = Boolean.parseBoolean(required);
 			loginRequiredInitialized = true;
 		}
-
-		return loginRequired;
 	}
 	
 	protected String getStatusDefault(Connection connection) throws SQLException {

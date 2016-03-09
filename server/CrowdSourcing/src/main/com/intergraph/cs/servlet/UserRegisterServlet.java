@@ -28,6 +28,16 @@ public class UserRegisterServlet extends CrowdSourcingServlet {
        
 	private static final String INSERT_USER = "INSERT INTO \"user\" (id, email, organization, password) VALUES (?, ?, ?, ?, ?)";
 	
+	/**
+	 * Minimum user id length.
+	 */
+	public static final int USER_ID_LENGTH_MIN = 3;
+	
+	/**
+	 * Defines user id form.
+	 */
+	public static final String USER_ID_REGEX = "([a-z]|[0-9]){" + USER_ID_LENGTH_MIN + ",}";
+	
     /**
      * @see CrowdSourcingServlet#CrowdSourcingServlet()
      */
@@ -39,6 +49,27 @@ public class UserRegisterServlet extends CrowdSourcingServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+	}
+
+	/**
+	 * Determines whether given identifier has required form.
+	 * 
+	 * @param userId The user identifier.
+	 * @throws CrowdSourcingException If the identifier is invalid.
+	 */
+	protected void checkUserIdForm(String userId) throws CrowdSourcingException {
+		if (userId == null)
+			throw new CrowdSourcingException("Missing '" + USER_ID + "'");
+		
+		if (userId.matches(Pattern.quote(USER_ID_REGEX)))
+			throw new CrowdSourcingException("'" + userId + "' doesn't match '" + USER_ID_REGEX + "'");
+	}
+	
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		initializeHeaders(response);
 		
 		Exception exception = null;
@@ -59,10 +90,10 @@ public class UserRegisterServlet extends CrowdSourcingServlet {
 
 			String userId = getString(user, USER_ID);
 			// Throws exception if userId already exists
-			checkUser(connection, userId, null);
+			checkUserIdAvailability(connection, userId);
 			
 			// Check if userId has valid form
-			checkUserId(userId);
+			checkUserIdForm(userId);
 
 			String userEmail = getString(user, USER_EMAIL);
 			String userOrganization = getString(user, USER_ORGANIZATION);
@@ -102,25 +133,6 @@ public class UserRegisterServlet extends CrowdSourcingServlet {
 			response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
 			exception.printStackTrace(response.getWriter());
 		}
-			
-	}
-
-	public static final int USER_ID_LENGTH_MIN = 3;
-	public static final String USER_ID_REGEX = "([a-z]|[0-9]){" + USER_ID_LENGTH_MIN + ",}";
-	
-	protected void checkUserId(String userId) throws CrowdSourcingException {
-		if (userId == null)
-			throw new CrowdSourcingException("Missing '" + USER_ID + "'");
-		
-		if (userId.matches(Pattern.quote(USER_ID_REGEX)))
-			throw new CrowdSourcingException("'" + userId + "' doesn't match '" + USER_ID_REGEX + "'");
-	}
-	
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		doGet(request, response);
 	}
 
 	private void checkItem(String item, String itemName) throws CrowdSourcingException {

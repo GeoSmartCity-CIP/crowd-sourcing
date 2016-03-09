@@ -22,6 +22,7 @@ import javax.servlet.http.Part;
 import com.intergraph.cs.io.IOUtils;
 import com.intergraph.cs.schema.CrowdSourcingSchema;
 
+import model.User;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -100,14 +101,7 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			JSONArray eventTags = getJSONArray(data, EVENT_TAGS);
 			checkTags(connection, eventTags);
 			
-			String userId = null, userPassword = null;
-			JSONObject user = getJSONObject(data, EVENT_USER);
-			if (user != null) {
-				userId = getString(user, USER_ID);
-				userPassword = getString(user, USER_PASSWORD);
-			}
-			
-			verifyUser(connection, userId, userPassword);
+			User user = verifyUser(connection, data);
 			
 			JSONObject location = (JSONObject)data.get(EVENT_LOCATION);
 			if (location == null) {
@@ -131,7 +125,7 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			statement = connection.prepareStatement(INSERT_EVENT);
 			statement.setObject(1, eventUuid);
 			statement.setString(2, eventDescription);
-			statement.setString(3, userId);
+			statement.setString(3, user.id);
 			statement.setDouble(4, latitude);
 			statement.setDouble(5, longitude);
 			statement.setInt(6, srid);

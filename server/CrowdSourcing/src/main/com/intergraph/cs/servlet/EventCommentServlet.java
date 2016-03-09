@@ -12,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import model.User;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
@@ -55,14 +56,14 @@ public class EventCommentServlet extends CrowdSourcingServlet {
 
 			UUID uuid = getRequestUUID(request);
 			JSONObject object = getRequestObject(request);
-			String user = getUserId(connection, object);
+			User user = verifyUser(connection, object);
 			String text = getString(object, COMMENT_TEXT);
 			Timestamp timestamp = getTimestamp(object, COMMENT_DATETIME);
 			
 			statement = connection.prepareStatement(QUERY_INSERT_COMMENT);
 			statement.setObject(1, uuid);
 			statement.setString(2, text);
-			statement.setString(3, user);
+			statement.setString(3, user.id);
 			statement.setTimestamp(4, timestamp);
 			statement.executeUpdate();
 		}

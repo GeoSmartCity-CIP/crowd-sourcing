@@ -44,40 +44,40 @@ public class EventApprove extends CrowdSourcingServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
 
-		initializeHeaders(response);
-
-		Exception exception = null;
-		Connection connection = null;
-		PreparedStatement statement = null;
-		
-		try {
-			connection = openDatabaseConnection();
-
-			UUID uuid = getRequestUUID(request);
-			JSONObject object = getRequestObject(request);
-			String user = getUserId(connection, object);
-			String text = getString(object, COMMENT_TEXT);
-			Timestamp timestamp = getTimestamp(object, COMMENT_DATETIME);
-			
-			statement = connection.prepareStatement(QUERY_INSERT_COMMENT);
-			statement.setObject(1, uuid);
-			statement.setString(2, text);
-			statement.setString(3, user);
-			statement.setTimestamp(4, timestamp);
-			statement.executeUpdate();
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		finally {
-			closeQuietly(statement);
-			closeQuietly(connection);
-		}
-
-		if (exception != null) {
-			response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
-			exception.printStackTrace(response.getWriter());
-		}
+//		initializeHeaders(response);
+//
+//		Exception exception = null;
+//		Connection connection = null;
+//		PreparedStatement statement = null;
+//		
+//		try {
+//			connection = openDatabaseConnection();
+//
+//			UUID uuid = getRequestUUID(request);
+//			JSONObject object = getRequestObject(request);
+//			String user = getUserId(connection, object);
+//			String text = getString(object, COMMENT_TEXT);
+//			Timestamp timestamp = getTimestamp(object, COMMENT_DATETIME);
+//			
+//			statement = connection.prepareStatement(QUERY_INSERT_COMMENT);
+//			statement.setObject(1, uuid);
+//			statement.setString(2, text);
+//			statement.setString(3, user);
+//			statement.setTimestamp(4, timestamp);
+//			statement.executeUpdate();
+//		}
+//		catch (Exception e) {
+//			exception = e;
+//		}
+//		finally {
+//			closeQuietly(statement);
+//			closeQuietly(connection);
+//		}
+//
+//		if (exception != null) {
+//			response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
+//			exception.printStackTrace(response.getWriter());
+//		}
 	}
 
 }

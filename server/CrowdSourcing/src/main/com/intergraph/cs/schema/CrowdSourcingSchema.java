@@ -48,4 +48,6 @@ public interface CrowdSourcingSchema {
 	String PROPERTY_STATUS_DEFAULT = "status-default";
 	String PROPERTY_ROLE_DEFAULT = "role-default";
 	String PROPERTY_PRIORITY_DEFAULT = "priority-default";
+	
+	String ROLE_ADMIN = "admin";
 }
