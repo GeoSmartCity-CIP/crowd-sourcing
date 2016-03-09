@@ -1,6 +1,7 @@
 #!/bin/bash
 
 BASE_URL="http://localhost:8080/CrowdSourcing"
+BASE_URL="http://geo.mapshakers.com:222/CrowdSourcing"
 SERVICE_PATH="event/comment"
 UUID="5ed32063-45bd-4ac2-9f68-0bf8efa38814"
 

@@ -1,11 +1,14 @@
 #!/bin/bash
 
-BASE_URL="http://localhost:8080/CrowdSourcing"
-#BASE_URL="http://geo.mapshakers.com:8080/CrowdSourcing"
+. global_settings.sh
+
 SERVICE_PATH="event/list"
 
 read -d '' JSON << EOF
 {
+   "filter": {
+      "user": "mole"
+   }
 }
 EOF
 
