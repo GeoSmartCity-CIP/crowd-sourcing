@@ -23,6 +23,8 @@ import net.minidev.json.parser.JSONParser;
 public class EventCommentServlet extends CrowdSourcingServlet {
 	private static final long serialVersionUID = 1L;
        
+	public static final String QUERY_INSERT_COMMENT = "INSERT INTO comment (event, text, \"user\", datetime) VALUES ((SELECT id FROM event WHERE uuid=?), ?, ?, ?)";
+
     /**
      * @see CrowdSourcingServlet#CrowdSourcingServlet()
      */
@@ -38,7 +40,6 @@ public class EventCommentServlet extends CrowdSourcingServlet {
 		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 	}
 
-	public static final String QUERY_INSERT_COMMENT = "INSERT INTO comment (event, text, \"user\", datetime) VALUES ((SELECT id FROM event WHERE uuid=?), ?, ?, ?)";
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */

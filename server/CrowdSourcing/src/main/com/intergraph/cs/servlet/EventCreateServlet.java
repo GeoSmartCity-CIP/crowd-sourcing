@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
@@ -82,6 +83,21 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			else
 				eventUuid = UUID.fromString(id);
 
+			//  Check if event with defined UUID already exists
+			try
+			{
+				if(eventExists(connection, eventUuid))
+				{
+					response.setStatus(HttpServletResponse.SC_CONFLICT);
+					return;
+				}
+			}
+			catch(Throwable ex)
+			{
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				return;
+			}
+
 			String eventDescription = getString(data, EVENT_DESCRIPTION);
 			JSONArray media = getJSONArray(data, EVENT_MEDIA);
 
@@ -125,6 +141,9 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			statement = connection.prepareStatement(INSERT_EVENT);
 			statement.setObject(1, eventUuid);
 			statement.setString(2, eventDescription);
+			if(user == null)
+				statement.setNull(3, Types.VARCHAR);
+			else
 			statement.setString(3, user.id);
 			statement.setDouble(4, latitude);
 			statement.setDouble(5, longitude);

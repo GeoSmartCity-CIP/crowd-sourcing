@@ -52,6 +52,7 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 			addToConfig(config, CONFIG_MIME_TYPES, getSupportedMimeTypes(connection));
 			addToConfig(config, CONFIG_STATUSES, getAvailableStatuses(connection));
 			addToConfig(config, CONFIG_PRIORITIES, getAvailablePriorities(connection));
+			addToConfig(config, CONFIG_LOGIN_REQUIRED, isLoginRequired());
 
 			PrintWriter writer = response.getWriter();
 			config.writeJSONString(writer);
@@ -74,6 +75,10 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 			JSONArray array = new JSONArray();
 			array.addAll(values);
 			config.put(key, array);
+	}
+
+	private void addToConfig(JSONObject config, String key, Object value) {
+			config.put(key, value);
 	}
 
 	/**

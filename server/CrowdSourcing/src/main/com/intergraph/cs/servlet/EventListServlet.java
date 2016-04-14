@@ -33,6 +33,20 @@ import net.minidev.json.parser.JSONParser;
 public class EventListServlet extends CrowdSourcingServlet implements CrowdSourcingSchema {
 	private static final long serialVersionUID = 1L;
        
+	public static final String LIST_QUERY = "SELECT id FROM event";
+	public static final String LIST_CONDITION_FROM = " datetime >= ?";
+	public static final String LIST_CONDITION_TO = " datetime <= ?";
+	public static final String LIST_CONDITION_PRIORITY = " priority = ?";
+	public static final String LIST_CONDITION_STATUS = " status = ?";
+	public static final String LIST_CONDITION_USER_ID = " \"user\" = ?";
+	public static final String LIST_CONDITION_BBOX = " location @ ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), ?)";
+
+	public static final String SELECT_EVENT = "SELECT uuid, description, \"user\", ST_X(location), ST_Y(location), ST_SRID(location), datetime, priority, status, tags FROM event WHERE id=?";
+	public static final String LIST_MEDIA = "SELECT uuid, mime_type FROM media WHERE event_id=?";
+	public static final String LIST_COMMENTS = "SELECT text, \"user\", datetime FROM comment WHERE event=?";
+
+	
+	
     /**
      * @see CrowdSourcingServlet#CrowdSourcingServlet()
      */
@@ -44,6 +58,10 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		requestURL = request.getRequestURL().toString();
+		servletPath = request.getServletPath();
+
 		listEvents(null, response);
 	}
 
@@ -83,15 +101,6 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 		}
 	}
 
-	public static final String LIST_QUERY = "SELECT id FROM event";
-	public static final String LIST_CONDITION_FROM = " datetime >= ?";
-	public static final String LIST_CONDITION_TO = " datetime <= ?";
-	public static final String LIST_CONDITION_PRIORITY = " priority = ?";
-	public static final String LIST_CONDITION_STATUS = " status = ?";
-	public static final String LIST_CONDITION_USER_ID = " \"user\" = ?";
-	public static final String LIST_CONDITION_BBOX = " location @ ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), ?)";
-
-	public static final String LIST_MEDIA = "SELECT uuid, mime_type FROM media WHERE event_id=?";
 	
 	protected void listEvents(JSONObject data, HttpServletResponse response) 
 			throws ServletException, IOException {
@@ -105,13 +114,13 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 		try {
 			connection = openDatabaseConnection();
 			
-			JSONObject filter = getJSONObject(data, LIST_FILTER);
+			JSONObject filter = data == null ? null : getJSONObject(data, LIST_FILTER);
 			String query = LIST_QUERY;
 			
 			ArrayList<String> conditions = new ArrayList<String>();
 			ArrayList<Object> params = new ArrayList<Object>();
 
-			JSONObject bbox = getJSONObject(filter, LIST_BBOX);
+			JSONObject bbox = filter == null ? null : getJSONObject(filter, LIST_BBOX);
 			if (bbox != null) {
 				double latMin = getDoubleOrThrow(bbox, LIST_BBOX_LATITUDE_MIN);
 				double lonMin = getDoubleOrThrow(bbox, LIST_BBOX_LONGITUDE_MIN);
@@ -128,7 +137,7 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 				params.add(srid);
 			}
 
-			JSONObject datetime = getJSONObject(filter, EVENT_DATETIME);
+			JSONObject datetime = filter == null ? null : getJSONObject(filter, EVENT_DATETIME);
 			if (datetime != null) {
 				String from = getString(datetime, LIST_FROM);
 				if (from != null) {
@@ -144,7 +153,7 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 				
 			}
 			
-			JSONArray priorities = getJSONArray(filter, EVENT_PRIORITY);
+			JSONArray priorities = filter == null ? null : getJSONArray(filter, EVENT_PRIORITY);
 			int npriorities = priorities != null ? priorities.size() : 0;
 			if (npriorities > 0) {
 				StringBuffer condition = new StringBuffer();
@@ -160,7 +169,7 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 				conditions.add(condition.toString());
 			}
 
-			String user = getString(filter, EVENT_USER);
+			String user = filter == null ? null : getString(filter, EVENT_USER);
 			if (user != null) {
 				conditions.add(LIST_CONDITION_USER_ID);
 				params.add(user);
@@ -208,8 +217,6 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 			exception.printStackTrace(response.getWriter());
 		}
 	}
-	
-	protected static final String SELECT_EVENT = "SELECT uuid, description, user, ST_X(location), ST_Y(location), ST_SRID(location), datetime, priority, status, tags FROM event WHERE id=?";
 	
 	private JSONObject fetchEvent(Connection connection, long eventId)
 		throws ServletException, IOException, SQLException {
@@ -267,6 +274,8 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 					tagsArray.free();
 				}
 			}
+			else
+				event.put(EVENT_TAGS,  new JSONArray());
 
 			event.put(EVENT_LOCATION, location);
 			
@@ -285,6 +294,29 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 			if (!media.isEmpty())
 				event.put(EVENT_MEDIA, media);
 
+			result.close();
+			statement.close();
+			
+			statement = connection.prepareStatement(LIST_COMMENTS);
+			statement.setLong(1, eventId);
+			result = statement.executeQuery();
+			JSONArray comments = new JSONArray();
+			while (result.next()) {
+				String text = result.getString(1);
+				user = result.getString(2);
+				Timestamp timestamp = result.getTimestamp(3);
+				
+				JSONObject comment = new JSONObject();
+				if (user != null)
+					comment.put(COMMENT_USER, user);
+				comment.put(COMMENT_TEXT, text);
+				comment.put(COMMENT_DATETIME, toISO8601(new Date(timestamp.getTime())));
+				
+				comments.add(comment);
+			}
+			
+			if (!comments.isEmpty())
+				event.put(EVENT_COMMENTS, comments);
 			return event;
 		}
 		finally {

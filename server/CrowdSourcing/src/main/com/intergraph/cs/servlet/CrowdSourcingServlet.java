@@ -276,6 +276,7 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	public static final String QUERY_SELECT_USER = "SELECT * FROM \"user\" WHERE id=?";
 	public static final String QUERY_SELECT_USER_COUNT = "SELECT count(*) FROM \"user\" WHERE id=?";
 	public static final String QUERY_INSERT_USER = "INSERT INTO \"user\" (id, email, role, organization) VALUES (?, ?, ?, ?)";
+	public static final String QUERY_SELECT_EVENT = "SELECT * FROM \"event\" WHERE uuid=?";
 
 //	protected String getUserId(Connection connection, JSONObject object)
 //			throws MissingArgumentException, SQLException, UserAlreadyExists {
@@ -516,6 +517,9 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 
 	protected void verifyUser(User user, JSONObject object) 
 			throws PermissionException, MissingArgumentException {
+		if (!isLoginRequired())
+			return;
+
 		JSONObject u = getJSONObject(object, EVENT_USER);
 		String userId = getString(u, USER_ID);
 		String password = getString(u, USER_PASSWORD);
@@ -550,6 +554,26 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 				return;
 		
 		throw new PermissionException("Role '" + role + "' required to perform this action");
+	}
+
+	protected boolean eventExists(final Connection connection, final UUID uuid) throws SQLException
+	{
+		if (uuid == null)
+			return false;
+
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		try {
+			statement = connection.prepareStatement(QUERY_SELECT_EVENT);
+			statement.setObject(1, uuid);
+			result = statement.executeQuery();
+			return result.next();
+
+		}
+		finally {
+			closeQuietly(result);
+			closeQuietly(statement);
+		}
 	}
 
 	/**

@@ -12,6 +12,7 @@ public interface CrowdSourcingSchema {
 	String EVENT_STATUS = "status";
 	String EVENT_USER = "user";
 	String EVENT_LOCATION = "location";
+	String EVENT_COMMENTS = "comments";
 
 	String MEDIA_ID = "id";
 	String MEDIA_MIME_TYPE = "type";
@@ -39,15 +40,16 @@ public interface CrowdSourcingSchema {
 	String LIST_BBOX_LONGITUDE_MAX = "lon-max";
 	String LIST_BBOX_LATITUDE_MAX = "lat-max";
 	
-	String CONFIG_TAGS = "tags";
-	String CONFIG_MIME_TYPES = "mime_types";
-	String CONFIG_STATUSES = "statuses";
-	String CONFIG_PRIORITIES = "priorities";
-
 	String PROPERTY_LOGIN_REQUIRED = "login-required";
 	String PROPERTY_STATUS_DEFAULT = "status-default";
 	String PROPERTY_ROLE_DEFAULT = "role-default";
 	String PROPERTY_PRIORITY_DEFAULT = "priority-default";
 	
+	String CONFIG_TAGS = "tags";
+	String CONFIG_MIME_TYPES = "mime_types";
+	String CONFIG_STATUSES = "statuses";
+	String CONFIG_PRIORITIES = "priorities";
+	String CONFIG_LOGIN_REQUIRED = PROPERTY_LOGIN_REQUIRED;
+
 	String ROLE_ADMIN = "admin";
 }
