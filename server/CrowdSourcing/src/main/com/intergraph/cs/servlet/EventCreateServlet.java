@@ -145,8 +145,8 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 				statement.setNull(3, Types.VARCHAR);
 			else
 			statement.setString(3, user.id);
-			statement.setDouble(4, latitude);
-			statement.setDouble(5, longitude);
+			statement.setDouble(4, longitude);
+			statement.setDouble(5, latitude);
 			statement.setInt(6, srid);
 			statement.setString(7, eventPriority);
 			statement.setTimestamp(8, eventTimestamp);

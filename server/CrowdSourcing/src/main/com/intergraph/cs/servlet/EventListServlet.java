@@ -236,8 +236,8 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 			Object uuid = result.getObject(1);
 			String description = result.getString(2);
 			String user = result.getString(3);
-			double latitude = result.getDouble(4);
-			double longitude = result.getDouble(5);
+			double longitude = result.getDouble(4);
+			double latitude = result.getDouble(5);
 			int srid = result.getInt(6);
 			Timestamp creation = result.getTimestamp(7);
 			String priority = result.getString(8);
