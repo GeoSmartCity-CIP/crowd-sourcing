@@ -14,7 +14,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import model.User;
+import com.intergraph.cs.model.User;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 

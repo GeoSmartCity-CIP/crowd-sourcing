@@ -291,8 +291,7 @@ public class EventListServlet extends CrowdSourcingServlet implements CrowdSourc
 					media.add(mediaRequestPath + "/media/" + uuid.toString());
 			}
 			
-			if (!media.isEmpty())
-				event.put(EVENT_MEDIA, media);
+			event.put(EVENT_MEDIA, media);
 
 			result.close();
 			statement.close();
