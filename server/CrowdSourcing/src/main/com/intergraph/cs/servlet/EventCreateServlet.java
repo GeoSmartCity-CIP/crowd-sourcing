@@ -23,7 +23,7 @@ import javax.servlet.http.Part;
 import com.intergraph.cs.io.IOUtils;
 import com.intergraph.cs.schema.CrowdSourcingSchema;
 
-import model.User;
+import com.intergraph.cs.model.User;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
