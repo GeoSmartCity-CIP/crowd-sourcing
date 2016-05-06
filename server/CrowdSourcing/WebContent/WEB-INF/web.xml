@@ -21,12 +21,6 @@
     <param-name>db-password</param-name>
     <param-value>rszturc</param-value>
   </context-param>
-
-  <!-- 
-     First, the default status is searched in table property under key 'status-default'.
-     If not found value of this parameter is used. If not used, status value remains 
-     uninitialized.
-   -->
   <context-param>
     <param-name>status-default</param-name>
     <param-value>submitted</param-value>

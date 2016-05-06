@@ -1,6 +1,8 @@
 package com.intergraph.cs.schema;
 
 public interface CrowdSourcingSchema {
+	String USER = "user";
+
 	String EVENT_ID = "id";
 	String EVENT_DESCRIPTION = "description";
 	String EVENT_MEDIA = "media";
@@ -10,7 +12,7 @@ public interface CrowdSourcingSchema {
 	String EVENT_PRIORITY = "priority";
 	String EVENT_DATETIME = "datetime";
 	String EVENT_STATUS = "status";
-	String EVENT_USER = "user";
+	String EVENT_USER = USER;
 	String EVENT_LOCATION = "location";
 	String EVENT_COMMENTS = "comments";
 
@@ -27,7 +29,7 @@ public interface CrowdSourcingSchema {
 	String LOCATION_LONGITUDE = "lon";
 	String LOCATION_CRS = "crs";
 
-	String COMMENT_USER = "user";
+	String COMMENT_USER = USER;
 	String COMMENT_TEXT = "text";
 	String COMMENT_DATETIME = "datetime";
 	
