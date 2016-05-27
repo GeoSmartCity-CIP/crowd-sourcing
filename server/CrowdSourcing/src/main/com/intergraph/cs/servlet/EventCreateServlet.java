@@ -176,6 +176,7 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 		}
 		catch (Exception e) {
 			exception = e;
+			e.printStackTrace();
 			try {
 				if (connection != null)
 					connection.rollback();

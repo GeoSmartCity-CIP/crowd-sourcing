@@ -154,6 +154,9 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	}
 
 	protected String getString(JSONObject object, String key) throws MissingArgumentException {
+		if (object == null)
+			return null;
+		
 		Object value = object.get(key);
 		if (value == null)
 			return null;
