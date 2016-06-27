@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ATTACHMENT_1="@checkmark-512.xxx"
+ATTACHMENT_1="@checkmark-512.png"
 PART_PREFIX="part://"
 
 read -d '' JSON << EOF
@@ -31,6 +31,9 @@ EOF
 curl -i \
      -F event="$JSON" \
      -F ${PART_PREFIX}1=$ATTACHMENT_1 \
-     http://localhost:8080/CrowdSourcing/event/create
+     http://www.municipia.pt/CrowdSourcing/event/create
+
+#     http://localhost:8080/CrowdSourcing/event/create
+   #  http://geo.mapshakers.com:8080/CrowdSourcing/event/create
 
 

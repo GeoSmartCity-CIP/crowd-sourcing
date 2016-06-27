@@ -26,7 +26,7 @@ import net.minidev.json.parser.JSONParser;
 public class UserRegisterServlet extends CrowdSourcingServlet {
 	private static final long serialVersionUID = 1L;
        
-	private static final String INSERT_USER = "INSERT INTO \"user\" (id, email, organization, password) VALUES (?, ?, ?, ?, ?)";
+	private static final String INSERT_USER = "INSERT INTO \"user\" (id, email, organization, password) VALUES (?, ?, ?, ?)";
 	
 	/**
 	 * Minimum user id length.
@@ -106,8 +106,8 @@ public class UserRegisterServlet extends CrowdSourcingServlet {
 			statement = connection.prepareStatement(INSERT_USER);
 			statement.setString(1, userId);
 			statement.setString(2, userEmail);
-			statement.setString(4, userOrganization);
-			statement.setString(5, passwordAsHexString(userPassword));
+			statement.setString(3, userOrganization);
+			statement.setString(4, passwordAsHexString(userPassword));
 			statement.execute();
 			statement.close();
 

@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.intergraph.cs.schema.CrowdSourcingSchema;
-import com.sun.org.omg.CORBA.InitializerHelper;
 
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -46,6 +45,7 @@ public class ConfigServlet extends CrowdSourcingServlet implements CrowdSourcing
 		
 		try {
 			connection = openDatabaseConnection();
+			initializeLoginRequired(connection);
 
 			JSONObject config = new JSONObject();
 			addToConfig(config, CONFIG_TAGS, getAvailableTags(connection));
