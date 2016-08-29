@@ -10,10 +10,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.UUID;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -173,6 +183,20 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			}
 
 			connection.commit();
+			
+			Collection<String> emails = new HashSet<String>();
+			int ntags = eventTags != null ? eventTags.size() : 0;
+			for (int i = 0; i < ntags; i++) {
+				String tag = (String)eventTags.get(i);
+				emails.addAll(getEmails(connection, tag));
+			}
+			
+			String subject = "New event submitted";
+			String body = "New event " + eventUuid.toString() + " has been submitted";
+			
+			for (String email : emails) {
+				sendEmail(email, subject, body); 
+			}
 		}
 		catch (Exception e) {
 			exception = e;
@@ -197,5 +221,46 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 		}
 	}
 		
+	private void sendEmail(String to, String subject, String body) {    
+		if (mailHost == null)
+			return;
+		
+	      // Get system properties
+	      Properties properties = System.getProperties();
+
+	      // Setup mail server
+	      properties.setProperty("mail.smtp.host", mailHost);
+	      properties.put("mail.smtp.port", mailPort);
+	      properties.put("mail.smtp.auth", "true");
+		  properties.put("mail.smtp.ssl.enable", "true");
+		  properties.put("mail.smtp.startssl.enable", "true");
+		  properties.put("mail.smtp.socketFactory.fallback", "true"); 
+		  properties.put("mail.transport.protocol", "imap");
+
+	      // Get the default Session object.
+	      Session session = Session.getInstance(properties);
+
+	      try{
+	         // Create a default MimeMessage object.
+	         MimeMessage message = new MimeMessage(session);
+
+	         // Set From: header field of the header.
+	         message.setFrom(new InternetAddress(mailUsername));
+
+	         // Set To: header field of the header.
+	         message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+
+	         // Set Subject: header field
+	         message.setSubject(subject);
+
+	         // Now set the actual message
+	         message.setText(body);
+
+	         // Send message
+	         Transport.send(message, mailUsername, mailPassword);
+	      }catch (MessagingException mex) {
+	         mex.printStackTrace();
+	      }
+	   }
 
 }

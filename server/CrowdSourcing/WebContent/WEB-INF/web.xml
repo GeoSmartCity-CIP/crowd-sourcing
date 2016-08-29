@@ -22,6 +22,22 @@
     <param-value>rszturc</param-value>
   </context-param>
   <context-param>
+    <param-name>mail-host</param-name>
+    <param-value>smtp.gmail.com</param-value>
+  </context-param>
+  <context-param>
+    <param-name>mail-port</param-name>
+    <param-value>465</param-value>
+  </context-param>
+  <context-param>
+    <param-name>mail-username</param-name>
+    <param-value>roman.szturc@gmail.com</param-value>
+  </context-param>
+  <context-param>
+    <param-name>mail-password</param-name>
+    <param-value>secret password</param-value>
+  </context-param>
+  <context-param>
     <param-name>status-default</param-name>
     <param-value>submitted</param-value>
   </context-param>

@@ -5,12 +5,12 @@ PART_PREFIX="part://"
 
 read -d '' JSON << EOF
 {
-   "id": "$(uuidgen)",
+   "_id": "$(uuidgen)",
    "description": "An event with 1 attachment",
    "media": [{"mime-type": "image/jpeg", "uri": "${PART_PREFIX}1"}],
    "user": {
-      "id": "mole",
-      "password": "tunnel"
+      "id": "kret",
+      "password": "hohoho"
    },
    "location": {
       "lat": 23.43,

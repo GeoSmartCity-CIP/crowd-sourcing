@@ -47,6 +47,11 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	public static final String PARAM_DATABASE_USER = "db-user";
 	public static final String PARAM_DATABASE_PASSWORD = "db-password";
 
+	public static final String PARAM_MAIL_HOST = "mail-host";
+	public static final String PARAM_MAIL_PORT = "mail-port";
+	public static final String PARAM_MAIL_USERNAME = "mail-username";
+	public static final String PARAM_MAIL_PASSWORD = "mail-password";
+
 	public static final String PARAM_STATUS_DEFAULT = PROPERTY_STATUS_DEFAULT;
 	public static final String PARAM_ROLE_DEFAULT = PROPERTY_ROLE_DEFAULT;
 	public static final String PARAM_PRIORITY_DEFAULT = PROPERTY_PRIORITY_DEFAULT;
@@ -66,6 +71,11 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	protected String dbUser = DATABASE_USER;
 	protected String dbPassword = DATABASE_PASSWORD;
 
+	protected String mailHost;
+	protected String mailPort;
+	protected String mailUsername;
+	protected String mailPassword;
+	
 	protected String statusDefault;
 	protected String roleDefault;
 	protected String priorityDefault;
@@ -94,6 +104,22 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 		value = context.getInitParameter(PARAM_DATABASE_PASSWORD);
 		if (value != null)
 			dbPassword = value;
+
+		value = context.getInitParameter(PARAM_MAIL_HOST);
+		if (value != null)
+			mailHost = value;
+
+		value = context.getInitParameter(PARAM_MAIL_PORT);
+		if (value != null)
+			mailPort = value;
+
+		value = context.getInitParameter(PARAM_MAIL_USERNAME);
+		if (value != null)
+			mailUsername = value;
+
+		value = context.getInitParameter(PARAM_MAIL_PASSWORD);
+		if (value != null)
+			mailPassword = value;
 
 		statusDefault = context.getInitParameter(PARAM_STATUS_DEFAULT);
 		roleDefault = context.getInitParameter(PARAM_ROLE_DEFAULT);
@@ -325,7 +351,27 @@ public abstract class CrowdSourcingServlet extends HttpServlet implements CrowdS
 	public static final String QUERY_SELECT_MIME_TYPES = "SELECT mime_type FROM mime_type";
 	public static final String QUERY_SELECT_STATUSES = "SELECT status FROM status";
 	public static final String QUERY_SELECT_PRIORITIES = "SELECT priority FROM priority";
+	public static final String QUERY_SELECT_EMAILS = "SELECT email FROM notification JOIN tag ON tag.id = notification.tag_id WHERE tag.tag = ?";
 
+	protected Collection<String> getEmails(Connection connection, String tag) throws SQLException {
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		ArrayList<String> tags = new ArrayList<String>();
+
+		try {
+			statement = connection.prepareStatement(QUERY_SELECT_EMAILS);
+			statement.setString(1, tag);
+			result = statement.executeQuery();
+			while (result.next())
+				tags.add(result.getString(1));
+
+			return tags;
+		} finally {
+			closeQuietly(result);
+			closeQuietly(statement);
+		}
+	}
+	
 	protected Collection<String> getAvailableTags(Connection connection) throws SQLException {
 		return getFirstColumn(connection, QUERY_SELECT_TAGS);
 	}
