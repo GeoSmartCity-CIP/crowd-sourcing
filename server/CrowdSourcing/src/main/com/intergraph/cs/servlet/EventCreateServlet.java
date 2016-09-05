@@ -184,6 +184,7 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 
 			connection.commit();
 			
+			if (false) {
 			Collection<String> emails = new HashSet<String>();
 			int ntags = eventTags != null ? eventTags.size() : 0;
 			for (int i = 0; i < ntags; i++) {
@@ -196,6 +197,7 @@ public class EventCreateServlet extends CrowdSourcingServlet implements CrowdSou
 			
 			for (String email : emails) {
 				sendEmail(email, subject, body); 
+			}
 			}
 		}
 		catch (Exception e) {
